@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.bookkeeper.mledger.Entry;
+import org.apache.pulsar.broker.ServiceConfiguration;
 import org.apache.pulsar.broker.service.BrokerServiceException;
 import org.apache.pulsar.broker.service.Consumer;
 import org.apache.pulsar.broker.service.EntryBatchSizes;
@@ -98,7 +99,9 @@ public class NonPersistentStickyKeyDispatcherMultipleConsumers extends NonPersis
 
             SendMessageInfo sendMessageInfo = SendMessageInfo.getThreadLocal();
             EntryBatchSizes batchSizes = EntryBatchSizes.get(entriesForConsumer.size());
-            filterEntriesForConsumer(consumer, entriesForConsumer, batchSizes, sendMessageInfo, null, null, false);
+            ServiceConfiguration configuration = topic.getBrokerService().getPulsar().getConfiguration();
+            boolean msgFilterExpressionEnable = configuration.isMsgFilterExpressionEnable();
+            filterEntriesForConsumer(consumer, entriesForConsumer, batchSizes, sendMessageInfo, null, null, false, msgFilterExpressionEnable);
             consumer.sendMessages(entriesForConsumer, batchSizes, null, sendMessageInfo.getTotalMessages(),
                     sendMessageInfo.getTotalBytes(), sendMessageInfo.getTotalChunkedMessages(), getRedeliveryTracker());
             TOTAL_AVAILABLE_PERMITS_UPDATER.addAndGet(this, -sendMessageInfo.getTotalMessages());

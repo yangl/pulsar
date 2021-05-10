@@ -94,7 +94,7 @@ public abstract class AbstractBaseDispatcher implements Dispatcher {
      */
     public void filterEntriesForConsumer(Consumer consumer, List<Entry> entries, EntryBatchSizes batchSizes,
                                          SendMessageInfo sendMessageInfo, EntryBatchIndexesAcks indexesAcks,
-                                         ManagedCursor cursor, boolean isReplayRead) {
+                                         ManagedCursor cursor, boolean isReplayRead, boolean isMsgFilterEnabled) {
         int totalMessages = 0;
         long totalBytes = 0;
         int totalChunkedMessages = 0;
@@ -144,30 +144,32 @@ public abstract class AbstractBaseDispatcher implements Dispatcher {
             }
 
             // exec msg filter expression
-            String filterExpression = consumer.msgFilterExpression();
-            if (StringUtils.isNotBlank(filterExpression)){
-                List<KeyValue>  properties = msgMetadata.getPropertiesList();
-                Map<String, Object> env = Maps.newHashMap();
-                properties.forEach(kv->{
-                    env.put(kv.getKey(),kv.getValue());
-                });
+            if (isMsgFilterEnabled){
+                String filterExpression = consumer.msgFilterExpression();
+                if (StringUtils.isNotBlank(filterExpression)){
+                    List<KeyValue>  properties = msgMetadata.getPropertiesList();
+                    Map<String, Object> env = Maps.newHashMap();
+                    properties.forEach(kv->{
+                        env.put(kv.getKey(),kv.getValue());
+                    });
 
-                Expression filter = AV_INSTANCE.compile(filterExpression, true);
-                Object rs = null;
-                try {
-                    rs = filter.execute(env);
-                } catch (Exception e) {
-                    log.error("Failed to execute aviator expression - {} ", filterExpression, e);
-                }
-                if (rs != null && rs instanceof Boolean && rs == Boolean.FALSE) {
-                    entries.set(i, null);
-                    entry.release();
+                    Expression filter = AV_INSTANCE.compile(filterExpression, true);
+                    Object rs = null;
+                    try {
+                        rs = filter.execute(env);
+                    } catch (Exception e) {
+                        log.error("Failed to execute aviator expression - {} ", filterExpression, e);
+                    }
+                    if (rs != null && rs instanceof Boolean && rs == Boolean.FALSE) {
+                        entries.set(i, null);
+                        entry.release();
 
-                    PositionImpl pos = (PositionImpl) entry.getPosition();
-                    subscription.acknowledgeMessage(Collections.singletonList(pos), AckType.Individual,
-                            Collections.emptyMap());
+                        PositionImpl pos = (PositionImpl) entry.getPosition();
+                        subscription.acknowledgeMessage(Collections.singletonList(pos), AckType.Individual,
+                                Collections.emptyMap());
 
-                    continue;
+                        continue;
+                    }
                 }
             }
 

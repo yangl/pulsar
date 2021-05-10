@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
 public class NonPersistentDispatcherMultipleConsumers extends AbstractDispatcherMultipleConsumers
         implements NonPersistentDispatcher {
 
-    private final NonPersistentTopic topic;
+    protected final NonPersistentTopic topic;
     protected final Subscription subscription;
 
     private CompletableFuture<Void> closeFuture = null;
@@ -190,7 +190,9 @@ public class NonPersistentDispatcherMultipleConsumers extends AbstractDispatcher
         if (consumer != null) {
             SendMessageInfo sendMessageInfo = SendMessageInfo.getThreadLocal();
             EntryBatchSizes batchSizes = EntryBatchSizes.get(entries.size());
-            filterEntriesForConsumer(consumer, entries, batchSizes, sendMessageInfo, null, null, false);
+            ServiceConfiguration configuration = topic.getBrokerService().getPulsar().getConfiguration();
+            boolean msgFilterExpressionEnable = configuration.isMsgFilterExpressionEnable();
+            filterEntriesForConsumer(consumer, entries, batchSizes, sendMessageInfo, null, null, false, msgFilterExpressionEnable);
             consumer.sendMessages(entries, batchSizes, null, sendMessageInfo.getTotalMessages(),
                     sendMessageInfo.getTotalBytes(), sendMessageInfo.getTotalChunkedMessages(), getRedeliveryTracker());
 

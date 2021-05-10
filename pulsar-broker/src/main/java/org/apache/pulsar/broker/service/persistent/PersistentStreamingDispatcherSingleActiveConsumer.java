@@ -28,6 +28,7 @@ import org.apache.bookkeeper.mledger.impl.ManagedCursorImpl;
 import org.apache.bookkeeper.mledger.impl.ManagedLedgerImpl;
 import org.apache.bookkeeper.mledger.impl.PositionImpl;
 import org.apache.bookkeeper.mledger.util.SafeRun;
+import org.apache.pulsar.broker.ServiceConfiguration;
 import org.apache.pulsar.broker.service.Consumer;
 import org.apache.pulsar.broker.service.EntryBatchIndexesAcks;
 import org.apache.pulsar.broker.service.EntryBatchSizes;
@@ -160,8 +161,10 @@ public class PersistentStreamingDispatcherSingleActiveConsumer extends Persisten
             EntryBatchSizes batchSizes = EntryBatchSizes.get(1);
             SendMessageInfo sendMessageInfo = SendMessageInfo.getThreadLocal();
             EntryBatchIndexesAcks batchIndexesAcks = EntryBatchIndexesAcks.get(1);
+            ServiceConfiguration configuration = topic.getBrokerService().getPulsar().getConfiguration();
+            boolean msgFilterExpressionEnable = configuration.isMsgFilterExpressionEnable();
             filterEntriesForConsumer(consumer, Lists.newArrayList(entry), batchSizes, sendMessageInfo, batchIndexesAcks,
-                    cursor, false);
+                    cursor, false, msgFilterExpressionEnable);
             // Update cursor's read position.
             cursor.seek(((ManagedLedgerImpl) cursor.getManagedLedger())
                     .getNextValidPosition((PositionImpl) entry.getPosition()));

@@ -519,7 +519,7 @@ public class Commands {
             boolean createTopicIfDoesNotExist, String msgFilterExpression) {
         return newSubscribe(topic, subscription, consumerId, requestId, subType, priorityLevel, consumerName,
                 isDurable, startMessageId, metadata, readCompacted, isReplicated, subscriptionInitialPosition,
-                startMessageRollbackDurationInSec, schemaInfo, createTopicIfDoesNotExist, msgFilterExpression);
+                startMessageRollbackDurationInSec, schemaInfo, createTopicIfDoesNotExist, null, msgFilterExpression);
     }
 
     public static ByteBuf newSubscribe(String topic, String subscription, long consumerId, long requestId,
