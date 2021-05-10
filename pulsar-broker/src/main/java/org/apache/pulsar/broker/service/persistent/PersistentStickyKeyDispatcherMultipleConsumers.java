@@ -213,7 +213,7 @@ public class PersistentStickyKeyDispatcherMultipleConsumers extends PersistentDi
                 EntryBatchSizes batchSizes = EntryBatchSizes.get(messagesForC);
                 EntryBatchIndexesAcks batchIndexesAcks = EntryBatchIndexesAcks.get(messagesForC);
                 ServiceConfiguration configuration = topic.getBrokerService().getPulsar().getConfiguration();
-                boolean msgFilterExpressionEnable = configuration.isMsgFilterExpressionEnable();
+                boolean msgFilterExpressionEnable = configuration.isMsgFilterExpressionEnabled();
                 filterEntriesForConsumer(consumer, entriesWithSameKey, batchSizes, sendMessageInfo, batchIndexesAcks, cursor,
                         readType == ReadType.Replay, msgFilterExpressionEnable);
 

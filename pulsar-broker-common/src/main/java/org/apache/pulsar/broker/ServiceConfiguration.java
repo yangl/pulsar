@@ -449,7 +449,7 @@ public class ServiceConfiguration implements PulsarConfiguration {
             dynamic = true,
             doc = "Enable msg filter on broker side (default is disabled)"
     )
-    private boolean msgFilterExpressionEnable = false;
+    private boolean msgFilterExpressionEnabled = false;
 
     @FieldContext(
             category = CATEGORY_POLICIES,

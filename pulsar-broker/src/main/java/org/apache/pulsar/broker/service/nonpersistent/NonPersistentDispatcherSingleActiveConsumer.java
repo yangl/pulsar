@@ -60,7 +60,7 @@ public final class NonPersistentDispatcherSingleActiveConsumer extends AbstractD
             SendMessageInfo sendMessageInfo = SendMessageInfo.getThreadLocal();
             EntryBatchSizes batchSizes = EntryBatchSizes.get(entries.size());
             ServiceConfiguration configuration = topic.getBrokerService().getPulsar().getConfiguration();
-            boolean msgFilterExpressionEnable = configuration.isMsgFilterExpressionEnable();
+            boolean msgFilterExpressionEnable = configuration.isMsgFilterExpressionEnabled();
             filterEntriesForConsumer(currentConsumer, entries, batchSizes, sendMessageInfo, null, null, false, msgFilterExpressionEnable);
             currentConsumer.sendMessages(entries, batchSizes, null, sendMessageInfo.getTotalMessages(),
                     sendMessageInfo.getTotalBytes(), sendMessageInfo.getTotalChunkedMessages(), getRedeliveryTracker());

@@ -162,7 +162,7 @@ public class PersistentStreamingDispatcherSingleActiveConsumer extends Persisten
             SendMessageInfo sendMessageInfo = SendMessageInfo.getThreadLocal();
             EntryBatchIndexesAcks batchIndexesAcks = EntryBatchIndexesAcks.get(1);
             ServiceConfiguration configuration = topic.getBrokerService().getPulsar().getConfiguration();
-            boolean msgFilterExpressionEnable = configuration.isMsgFilterExpressionEnable();
+            boolean msgFilterExpressionEnable = configuration.isMsgFilterExpressionEnabled();
             filterEntriesForConsumer(consumer, Lists.newArrayList(entry), batchSizes, sendMessageInfo, batchIndexesAcks,
                     cursor, false, msgFilterExpressionEnable);
             // Update cursor's read position.

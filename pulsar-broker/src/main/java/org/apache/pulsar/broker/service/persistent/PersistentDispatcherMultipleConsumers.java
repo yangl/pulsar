@@ -516,7 +516,7 @@ public class PersistentDispatcherMultipleConsumers extends AbstractDispatcherMul
                 EntryBatchSizes batchSizes = EntryBatchSizes.get(entriesForThisConsumer.size());
                 EntryBatchIndexesAcks batchIndexesAcks = EntryBatchIndexesAcks.get(entriesForThisConsumer.size());
                 ServiceConfiguration configuration = topic.getBrokerService().getPulsar().getConfiguration();
-                boolean msgFilterExpressionEnable = configuration.isMsgFilterExpressionEnable();
+                boolean msgFilterExpressionEnable = configuration.isMsgFilterExpressionEnabled();
                 filterEntriesForConsumer(c, entriesForThisConsumer, batchSizes, sendMessageInfo, batchIndexesAcks, cursor,
                         readType == ReadType.Replay, msgFilterExpressionEnable);
 

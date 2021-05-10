@@ -100,7 +100,7 @@ public class NonPersistentStickyKeyDispatcherMultipleConsumers extends NonPersis
             SendMessageInfo sendMessageInfo = SendMessageInfo.getThreadLocal();
             EntryBatchSizes batchSizes = EntryBatchSizes.get(entriesForConsumer.size());
             ServiceConfiguration configuration = topic.getBrokerService().getPulsar().getConfiguration();
-            boolean msgFilterExpressionEnable = configuration.isMsgFilterExpressionEnable();
+            boolean msgFilterExpressionEnable = configuration.isMsgFilterExpressionEnabled();
             filterEntriesForConsumer(consumer, entriesForConsumer, batchSizes, sendMessageInfo, null, null, false, msgFilterExpressionEnable);
             consumer.sendMessages(entriesForConsumer, batchSizes, null, sendMessageInfo.getTotalMessages(),
                     sendMessageInfo.getTotalBytes(), sendMessageInfo.getTotalChunkedMessages(), getRedeliveryTracker());

@@ -198,7 +198,7 @@ public class PersistentDispatcherSingleActiveConsumer extends AbstractDispatcher
             SendMessageInfo sendMessageInfo = SendMessageInfo.getThreadLocal();
             EntryBatchIndexesAcks batchIndexesAcks = EntryBatchIndexesAcks.get(entries.size());
             ServiceConfiguration configuration = topic.getBrokerService().getPulsar().getConfiguration();
-            boolean msgFilterExpressionEnable = configuration.isMsgFilterExpressionEnable();
+            boolean msgFilterExpressionEnable = configuration.isMsgFilterExpressionEnabled();
             filterEntriesForConsumer(currentConsumer, entries, batchSizes, sendMessageInfo, batchIndexesAcks, cursor, false, msgFilterExpressionEnable);
             dispatchEntriesToConsumer(currentConsumer, entries, batchSizes, batchIndexesAcks, sendMessageInfo);
         }
