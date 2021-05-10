@@ -901,6 +901,8 @@ public class ServerCnx extends PulsarHandler implements TransportCnx {
                 subscriptionName,
                 TopicOperation.CONSUME
         );
+
+        final String msgFilterExpression = subscribe.getMsgFilterExpression();
         isAuthorizedFuture.thenApply(isAuthorized -> {
             if (isAuthorized) {
                 if (log.isDebugEnabled()) {
@@ -979,12 +981,12 @@ public class ServerCnx extends PulsarHandler implements TransportCnx {
                                                         subType, priorityLevel, consumerName, isDurable,
                                                         startMessageId, metadata,
                                                         readCompacted, initialPosition, startMessageRollbackDurationSec,
-                                                        isReplicated, keySharedMeta));
+                                                        isReplicated, keySharedMeta, msgFilterExpression));
                                     } else {
                                         return topic.subscribe(ServerCnx.this, subscriptionName, consumerId,
                                             subType, priorityLevel, consumerName, isDurable,
                                             startMessageId, metadata, readCompacted, initialPosition,
-                                            startMessageRollbackDurationSec, isReplicated, keySharedMeta);
+                                            startMessageRollbackDurationSec, isReplicated, keySharedMeta, msgFilterExpression);
                                     }
                                 })
                                 .thenAccept(consumer -> {

@@ -505,32 +505,33 @@ public class Commands {
     }
 
     public static ByteBuf newSubscribe(String topic, String subscription, long consumerId, long requestId,
-            SubType subType, int priorityLevel, String consumerName, long resetStartMessageBackInSeconds) {
+            SubType subType, int priorityLevel, String consumerName, long resetStartMessageBackInSeconds, String msgFilterExpression) {
         return newSubscribe(topic, subscription, consumerId, requestId, subType, priorityLevel, consumerName,
                 true /* isDurable */, null /* startMessageId */, Collections.emptyMap(), false,
                 false /* isReplicated */, InitialPosition.Earliest, resetStartMessageBackInSeconds, null,
-                true /* createTopicIfDoesNotExist */);
+                true /* createTopicIfDoesNotExist */, msgFilterExpression);
     }
 
     public static ByteBuf newSubscribe(String topic, String subscription, long consumerId, long requestId,
             SubType subType, int priorityLevel, String consumerName, boolean isDurable, MessageIdData startMessageId,
             Map<String, String> metadata, boolean readCompacted, boolean isReplicated,
             InitialPosition subscriptionInitialPosition, long startMessageRollbackDurationInSec, SchemaInfo schemaInfo,
-            boolean createTopicIfDoesNotExist) {
+            boolean createTopicIfDoesNotExist, String msgFilterExpression) {
         return newSubscribe(topic, subscription, consumerId, requestId, subType, priorityLevel, consumerName,
                 isDurable, startMessageId, metadata, readCompacted, isReplicated, subscriptionInitialPosition,
-                startMessageRollbackDurationInSec, schemaInfo, createTopicIfDoesNotExist, null);
+                startMessageRollbackDurationInSec, schemaInfo, createTopicIfDoesNotExist, msgFilterExpression);
     }
 
     public static ByteBuf newSubscribe(String topic, String subscription, long consumerId, long requestId,
                SubType subType, int priorityLevel, String consumerName, boolean isDurable, MessageIdData startMessageId,
                Map<String, String> metadata, boolean readCompacted, boolean isReplicated,
                InitialPosition subscriptionInitialPosition, long startMessageRollbackDurationInSec,
-               SchemaInfo schemaInfo, boolean createTopicIfDoesNotExist, KeySharedPolicy keySharedPolicy) {
+               SchemaInfo schemaInfo, boolean createTopicIfDoesNotExist, KeySharedPolicy keySharedPolicy, String msgFilterExpression) {
         BaseCommand cmd = localCmd(Type.SUBSCRIBE);
         CommandSubscribe subscribe = cmd.setSubscribe()
                 .setTopic(topic)
                 .setSubscription(subscription)
+                .setMsgFilterExpression(msgFilterExpression)
                 .setSubType(subType)
                 .setConsumerId(consumerId)
                 .setConsumerName(consumerName)
@@ -1731,6 +1732,10 @@ public class Commands {
 
     public static boolean peerSupportsAckReceipt(int peerVersion) {
         return peerVersion >= ProtocolVersion.v17.getValue();
+    }
+
+    public static boolean peerSupportsMsgFilterExpression(int peerVersion) {
+        return peerVersion >= ProtocolVersion.v18.getValue();
     }
 
     private static org.apache.pulsar.common.api.proto.ProducerAccessMode convertProducerAccessMode(ProducerAccessMode accessMode) {

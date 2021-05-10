@@ -110,6 +110,8 @@ public class Consumer {
 
     private final KeySharedMeta keySharedMeta;
 
+    private final String msgFilterExpression;
+
     /**
      * It starts keep tracking the average messages per entry.
      * The initial value is 1000, when new value comes, it will update with
@@ -128,7 +130,7 @@ public class Consumer {
                     int priorityLevel, String consumerName,
                     int maxUnackedMessages, TransportCnx cnx, String appId,
                     Map<String, String> metadata, boolean readCompacted, InitialPosition subscriptionInitialPosition,
-                    KeySharedMeta keySharedMeta) throws BrokerServiceException {
+                    KeySharedMeta keySharedMeta, String msgFilterExpression) throws BrokerServiceException {
 
         this.subscription = subscription;
         this.subType = subType;
@@ -141,6 +143,7 @@ public class Consumer {
         this.maxUnackedMessages = maxUnackedMessages;
         this.subscriptionInitialPosition = subscriptionInitialPosition;
         this.keySharedMeta = keySharedMeta;
+        this.msgFilterExpression = msgFilterExpression;
         this.cnx = cnx;
         this.msgOut = new Rate();
         this.chunkedMessageRate = new Rate();
@@ -187,6 +190,10 @@ public class Consumer {
 
     public String consumerName() {
         return consumerName;
+    }
+
+    public String msgFilterExpression(){
+        return msgFilterExpression;
     }
 
     void notifyActiveConsumerChange(Consumer activeConsumer) {

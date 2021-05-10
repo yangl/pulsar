@@ -129,7 +129,7 @@ public class PersistentTopicConcurrentTest extends MockedBookKeeperTestCase {
 
         Future<Consumer> f1 = topic.subscribe(serverCnx, cmd.getSubscription(), cmd.getConsumerId(), cmd.getSubType(),
                 0, cmd.getConsumerName(), cmd.isDurable(), null, Collections.emptyMap(), cmd.isReadCompacted(), InitialPosition.Latest,
-                0 /*avoid reseting cursor*/, false /* replicated */, null);
+                0 /*avoid reseting cursor*/, false /* replicated */, null, null);
         f1.get();
 
         final CyclicBarrier barrier = new CyclicBarrier(2);
@@ -191,7 +191,7 @@ public class PersistentTopicConcurrentTest extends MockedBookKeeperTestCase {
 
         Future<Consumer> f1 = topic.subscribe(serverCnx, cmd.getSubscription(), cmd.getConsumerId(), cmd.getSubType(),
                 0, cmd.getConsumerName(), cmd.isDurable(), null, Collections.emptyMap(), cmd.isReadCompacted(), InitialPosition.Latest,
-                0 /*avoid reseting cursor*/, false /* replicated */, null);
+                0 /*avoid reseting cursor*/, false /* replicated */, null, null);
         f1.get();
 
         final CyclicBarrier barrier = new CyclicBarrier(2);
@@ -259,7 +259,7 @@ public class PersistentTopicConcurrentTest extends MockedBookKeeperTestCase {
 
         Future<Consumer> f1 = topic.subscribe(serverCnx, cmd.getSubscription(), cmd.getConsumerId(), cmd.getSubType(),
                 0, cmd.getConsumerName(), cmd.isDurable(), null, Collections.emptyMap(), cmd.isReadCompacted(), InitialPosition.Latest,
-                0 /*avoid reseting cursor*/, false /* replicated */, null);
+                0 /*avoid reseting cursor*/, false /* replicated */, null, null);
         f1.get();
 
         final CyclicBarrier barrier = new CyclicBarrier(2);
@@ -321,7 +321,7 @@ public class PersistentTopicConcurrentTest extends MockedBookKeeperTestCase {
 
         Future<Consumer> f1 = topic.subscribe(serverCnx, cmd.getSubscription(), cmd.getConsumerId(), cmd.getSubType(),
                 0, cmd.getConsumerName(), cmd.isDurable(), null, Collections.emptyMap(), cmd.isReadCompacted(), InitialPosition.Latest,
-                0 /*avoid reseting cursor*/, false /* replicated */, null);
+                0 /*avoid reseting cursor*/, false /* replicated */, null, null);
         f1.get();
 
         final CyclicBarrier barrier = new CyclicBarrier(2);

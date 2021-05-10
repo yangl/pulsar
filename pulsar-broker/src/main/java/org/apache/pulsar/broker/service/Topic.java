@@ -121,7 +121,7 @@ public interface Topic {
                                           Map<String, String> metadata, boolean readCompacted,
                                           InitialPosition initialPosition,
                                           long startMessageRollbackDurationSec, boolean replicateSubscriptionState,
-                                          KeySharedMeta keySharedMeta);
+                                          KeySharedMeta keySharedMeta, String msgFilterExpression);
 
     CompletableFuture<Subscription> createSubscription(String subscriptionName, InitialPosition initialPosition,
             boolean replicateSubscriptionState);

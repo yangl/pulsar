@@ -220,7 +220,7 @@ public class NonPersistentTopic extends AbstractTopic implements Topic {
                                                  Map<String, String> metadata, boolean readCompacted,
                                                  InitialPosition initialPosition,
                                                  long resetStartMessageBackInSec, boolean replicateSubscriptionState,
-                                                 KeySharedMeta keySharedMeta) {
+                                                 KeySharedMeta keySharedMeta, String msgFilterExpression) {
 
         final CompletableFuture<Consumer> future = new CompletableFuture<>();
 
@@ -268,7 +268,7 @@ public class NonPersistentTopic extends AbstractTopic implements Topic {
 
         try {
             Consumer consumer = new Consumer(subscription, subType, topic, consumerId, priorityLevel, consumerName, 0,
-                    cnx, cnx.getAuthRole(), metadata, readCompacted, initialPosition, keySharedMeta);
+                    cnx, cnx.getAuthRole(), metadata, readCompacted, initialPosition, keySharedMeta, msgFilterExpression);
             addConsumerToSubscription(subscription, consumer);
             if (!cnx.isActive()) {
                 consumer.close();

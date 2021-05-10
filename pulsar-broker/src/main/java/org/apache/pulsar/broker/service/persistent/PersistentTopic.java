@@ -620,7 +620,7 @@ public class PersistentTopic extends AbstractTopic
                                                  InitialPosition initialPosition,
                                                  long startMessageRollbackDurationSec,
                                                  boolean replicatedSubscriptionState,
-                                                 KeySharedMeta keySharedMeta) {
+                                                 KeySharedMeta keySharedMeta, String msgFilterExpression) {
 
         final CompletableFuture<Consumer> future = new CompletableFuture<>();
 
@@ -727,7 +727,7 @@ public class PersistentTopic extends AbstractTopic
             try {
                 Consumer consumer = new Consumer(subscription, subType, topic, consumerId, priorityLevel, consumerName,
                         maxUnackedMessages, cnx, cnx.getAuthRole(), metadata,
-                        readCompacted, initialPosition, keySharedMeta);
+                        readCompacted, initialPosition, keySharedMeta, msgFilterExpression);
                 addConsumerToSubscription(subscription, consumer);
 
                 checkBackloggedCursors();

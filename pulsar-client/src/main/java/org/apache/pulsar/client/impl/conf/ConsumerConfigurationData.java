@@ -59,6 +59,8 @@ public class ConsumerConfigurationData<T> implements Serializable, Cloneable {
 
     private String subscriptionName;
 
+    private String msgFilterExpression;
+
     private SubscriptionType subscriptionType = SubscriptionType.Exclusive;
 
     private SubscriptionMode subscriptionMode = SubscriptionMode.Durable;
@@ -146,7 +148,7 @@ public class ConsumerConfigurationData<T> implements Serializable, Cloneable {
     private boolean batchIndexAckEnabled = false;
 
     private boolean ackReceiptEnabled = false;
-    
+
     private boolean poolMessages = false;
 
     public void setAutoUpdatePartitionsIntervalSeconds(int interval, TimeUnit timeUnit) {

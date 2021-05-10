@@ -66,6 +66,7 @@ import org.slf4j.LoggerFactory;
 public abstract class ConsumerBase<T> extends HandlerState implements Consumer<T> {
 
     protected final String subscription;
+    protected final String msgFilterExpression;
     protected final ConsumerConfigurationData<T> conf;
     protected final String consumerName;
     protected final CompletableFuture<Consumer<T>> subscribeFuture;
@@ -93,6 +94,7 @@ public abstract class ConsumerBase<T> extends HandlerState implements Consumer<T
         super(client, topic);
         this.maxReceiverQueueSize = receiverQueueSize;
         this.subscription = conf.getSubscriptionName();
+        this.msgFilterExpression = conf.getMsgFilterExpression();
         this.conf = conf;
         this.consumerName = conf.getConsumerName() == null ? ConsumerName.generateRandomName() : conf.getConsumerName();
         this.subscribeFuture = subscribeFuture;

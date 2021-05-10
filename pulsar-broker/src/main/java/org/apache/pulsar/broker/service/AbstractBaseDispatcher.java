@@ -20,20 +20,31 @@
 package org.apache.pulsar.broker.service;
 
 import static org.apache.pulsar.broker.cache.ConfigurationCacheService.POLICIES;
+
+import com.google.common.collect.Maps;
+import com.googlecode.aviator.AviatorEvaluator;
+import com.googlecode.aviator.AviatorEvaluatorInstance;
+import com.googlecode.aviator.Expression;
+import com.googlecode.aviator.Feature;
+import com.googlecode.aviator.Options;
 import io.netty.buffer.ByteBuf;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.bookkeeper.mledger.Entry;
 import org.apache.bookkeeper.mledger.ManagedCursor;
 import org.apache.bookkeeper.mledger.impl.PositionImpl;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.pulsar.broker.admin.AdminResource;
 import org.apache.pulsar.broker.intercept.BrokerInterceptor;
 import org.apache.pulsar.broker.service.persistent.PersistentTopic;
 import org.apache.pulsar.client.api.transaction.TxnID;
 import org.apache.pulsar.common.api.proto.CommandAck.AckType;
+import org.apache.pulsar.common.api.proto.KeyValue;
 import org.apache.pulsar.common.api.proto.MessageMetadata;
 import org.apache.pulsar.common.api.proto.ReplicatedSubscriptionsSnapshot;
 import org.apache.pulsar.common.naming.TopicName;
@@ -44,6 +55,16 @@ import org.apache.pulsar.common.protocol.Markers;
 
 @Slf4j
 public abstract class AbstractBaseDispatcher implements Dispatcher {
+
+    // aviator evaluator instance
+    private static AviatorEvaluatorInstance AV_INSTANCE;
+
+    static {
+        AV_INSTANCE = AviatorEvaluator.getInstance();
+        // If Return
+        Set<Feature> features = Feature.asSet(Feature.If, Feature.Return);
+        AV_INSTANCE.setOption(Options.FEATURE_SET, features);
+    }
 
     protected final Subscription subscription;
 
@@ -71,7 +92,7 @@ public abstract class AbstractBaseDispatcher implements Dispatcher {
      * @param sendMessageInfo
      *            an object where the total size in messages and bytes will be returned back to the caller
      */
-    public void filterEntriesForConsumer(List<Entry> entries, EntryBatchSizes batchSizes,
+    public void filterEntriesForConsumer(Consumer consumer, List<Entry> entries, EntryBatchSizes batchSizes,
                                          SendMessageInfo sendMessageInfo, EntryBatchIndexesAcks indexesAcks,
                                          ManagedCursor cursor, boolean isReplayRead) {
         int totalMessages = 0;
@@ -120,6 +141,34 @@ public abstract class AbstractBaseDispatcher implements Dispatcher {
                 entries.set(i, null);
                 entry.release();
                 continue;
+            }
+
+            // exec msg filter expression
+            String filterExpression = consumer.msgFilterExpression();
+            if (StringUtils.isNotBlank(filterExpression)){
+                List<KeyValue>  properties = msgMetadata.getPropertiesList();
+                Map<String, Object> env = Maps.newHashMap();
+                properties.forEach(kv->{
+                    env.put(kv.getKey(),kv.getValue());
+                });
+
+                Expression filter = AV_INSTANCE.compile(filterExpression, true);
+                Object rs = null;
+                try {
+                    rs = filter.execute(env);
+                } catch (Exception e) {
+                    log.error("Failed to execute aviator expression - {} ", filterExpression, e);
+                }
+                if (rs != null && rs instanceof Boolean && rs == Boolean.FALSE) {
+                    entries.set(i, null);
+                    entry.release();
+
+                    PositionImpl pos = (PositionImpl) entry.getPosition();
+                    subscription.acknowledgeMessage(Collections.singletonList(pos), AckType.Individual,
+                            Collections.emptyMap());
+
+                    continue;
+                }
             }
 
             int batchSize = msgMetadata.getNumMessagesInBatch();

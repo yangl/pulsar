@@ -167,6 +167,15 @@ public interface ConsumerBuilder<T> extends Cloneable {
      */
     ConsumerBuilder<T> subscriptionName(String subscriptionName);
 
+
+    /**
+     * Specify the msg filter expression for this consumer.
+     *
+     * @param msgFilterExpression the expression of the subscription that this consumer should match
+     * @return the consumer builder instance
+     */
+    ConsumerBuilder<T> msgFilterExpression(String msgFilterExpression);
+
     /**
      * Set the timeout for unacked messages, truncated to the nearest millisecond. The timeout needs to be greater than
      * 1 second.

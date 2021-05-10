@@ -742,7 +742,7 @@ public class ConsumerImpl<T> extends ConsumerBase<T> implements ConnectionHandle
         ByteBuf request = Commands.newSubscribe(topic, subscription, consumerId, requestId, getSubType(), priorityLevel,
                 consumerName, isDurable, startMessageIdData, metadata, readCompacted,
                 conf.isReplicateSubscriptionState(), InitialPosition.valueOf(subscriptionInitialPosition.getValue()),
-                startMessageRollbackDuration, si, createTopicIfDoesNotExist, conf.getKeySharedPolicy());
+                startMessageRollbackDuration, si, createTopicIfDoesNotExist, conf.getKeySharedPolicy(), conf.getMsgFilterExpression());
 
         cnx.sendRequestWithId(request, requestId).thenRun(() -> {
             synchronized (ConsumerImpl.this) {
@@ -2223,10 +2223,19 @@ public class ConsumerImpl<T> extends ConsumerBase<T> implements ConnectionHandle
         if (clientCnx != null) {
             this.connectionHandler.setClientCnx(clientCnx);
             clientCnx.registerConsumer(consumerId, this);
+            int remoteEndpointProtocolVersion = clientCnx.getRemoteEndpointProtocolVersion();
             if (conf.isAckReceiptEnabled() &&
-                    Commands.peerSupportsAckReceipt(clientCnx.getRemoteEndpointProtocolVersion())) {
+                    !Commands.peerSupportsAckReceipt(remoteEndpointProtocolVersion)) {
                 log.warn("Server don't support ack for receipt! " +
-                        "ProtoVersion >=17 support! nowVersion : {}", clientCnx.getRemoteEndpointProtocolVersion());
+                        "ProtoVersion >=17 support! nowVersion : {}", remoteEndpointProtocolVersion);
+            }
+
+            // msg filter expression
+            if (StringUtils.isNotBlank(conf.getMsgFilterExpression()) &&
+                    !Commands.peerSupportsMsgFilterExpression(remoteEndpointProtocolVersion)){
+                log.warn("Server don't support msg filter expression! " +
+                        "ProtoVersion >=18 support! nowVersion : {}", remoteEndpointProtocolVersion);
+
             }
         }
         ClientCnx previousClientCnx = clientCnxUsedForConsumerRegistration.getAndSet(clientCnx);
