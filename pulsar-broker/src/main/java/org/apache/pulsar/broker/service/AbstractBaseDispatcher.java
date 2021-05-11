@@ -106,7 +106,8 @@ public abstract class AbstractBaseDispatcher implements Dispatcher {
 
             ByteBuf metadataAndPayload = entry.getDataBuffer();
 
-            MessageMetadata msgMetadata = Commands.peekMessageMetadata(metadataAndPayload, subscription.toString(), -1);
+            MessageMetadata msgMetadata = Commands
+                    .peekMessageMetadata(metadataAndPayload, subscription.toString(), consumer.consumerId());
 
             if (!isReplayRead && msgMetadata != null
                     && msgMetadata.hasTxnidMostBits() && msgMetadata.hasTxnidLeastBits()) {
@@ -144,13 +145,13 @@ public abstract class AbstractBaseDispatcher implements Dispatcher {
             }
 
             // exec msg filter expression
-            if (isMsgFilterEnabled){
+            if (isMsgFilterEnabled && msgMetadata != null && !Markers.isServerOnlyMarker(msgMetadata)) {
                 String filterExpression = consumer.msgFilterExpression();
-                if (StringUtils.isNotBlank(filterExpression)){
-                    List<KeyValue>  properties = msgMetadata.getPropertiesList();
+                if (StringUtils.isNotBlank(filterExpression)) {
+                    List<KeyValue> properties = msgMetadata.getPropertiesList();
                     Map<String, Object> env = Maps.newHashMap();
-                    properties.forEach(kv->{
-                        env.put(kv.getKey(),kv.getValue());
+                    properties.forEach(kv -> {
+                        env.put(kv.getKey(), kv.getValue());
                     });
 
                     Expression filter = AV_INSTANCE.compile(filterExpression, true);

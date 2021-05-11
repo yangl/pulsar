@@ -932,7 +932,8 @@ public class ServerCnx extends PulsarHandler implements TransportCnx {
                 TopicOperation.CONSUME
         );
 
-        final String msgFilterExpression = subscribe.getMsgFilterExpression();
+        final String msgFilterExpression =
+                subscribe.hasMsgFilterExpression() ? subscribe.getMsgFilterExpression() : null;
         isAuthorizedFuture.thenApply(isAuthorized -> {
             if (isAuthorized) {
                 if (log.isDebugEnabled()) {

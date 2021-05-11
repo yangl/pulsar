@@ -94,21 +94,26 @@ public class ZkBookieRackAffinityMapping extends AbstractDNSToSwitchMapping
                 bookies.forEach((addr, bi) -> {
                     try {
                         BookieId bookieId = BookieId.parse(addr);
-                        BookieSocketAddress bsa = getBookieAddressResolver().resolve(bookieId);
-                        newRacksWithHost.updateBookie(group, bsa.toString(), bi);
 
-                        String hostname = bsa.getSocketAddress().getHostName();
-                        newBookieInfoMap.put(hostname, bi);
+                        BookieAddressResolver bookieAddressResolver = getBookieAddressResolver();
+                        if (bookieAddressResolver!=null){
+                            BookieSocketAddress bsa = bookieAddressResolver.resolve(bookieId);
+                            newRacksWithHost.updateBookie(group, bsa.toString(), bi);
 
-                        InetAddress address = bsa.getSocketAddress().getAddress();
-                        if (null != address) {
-                            String hostIp = address.getHostAddress();
-                            if (null != hostIp) {
-                                newBookieInfoMap.put(hostIp, bi);
+                            String hostname = bsa.getSocketAddress().getHostName();
+                            newBookieInfoMap.put(hostname, bi);
+
+                            InetAddress address = bsa.getSocketAddress().getAddress();
+                            if (null != address) {
+                                String hostIp = address.getHostAddress();
+                                if (null != hostIp) {
+                                    newBookieInfoMap.put(hostIp, bi);
+                                }
+                            } else {
+                                LOG.info("Network address for {} is unresolvable yet.", addr);
                             }
-                        } else {
-                            LOG.info("Network address for {} is unresolvable yet.", addr);
                         }
+
                     } catch (BookieAddressResolver.BookieIdNotResolvedException e) {
                         LOG.info("Network address for {} is unresolvable yet. error is {}", addr, e);
                     }

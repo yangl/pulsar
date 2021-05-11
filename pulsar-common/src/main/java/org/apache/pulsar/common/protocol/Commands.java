@@ -531,7 +531,6 @@ public class Commands {
         CommandSubscribe subscribe = cmd.setSubscribe()
                 .setTopic(topic)
                 .setSubscription(subscription)
-                .setMsgFilterExpression(msgFilterExpression)
                 .setSubType(subType)
                 .setConsumerId(consumerId)
                 .setConsumerName(consumerName)
@@ -582,6 +581,10 @@ public class Commands {
             }
 
             convertSchema(schemaInfo, subscribe.setSchema());
+        }
+
+        if (StringUtils.isNotBlank(msgFilterExpression)){
+            subscribe.setMsgFilterExpression(msgFilterExpression);
         }
 
         return serializeWithSize(cmd);
