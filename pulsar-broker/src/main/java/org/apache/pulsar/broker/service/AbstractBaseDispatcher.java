@@ -116,14 +116,14 @@ public abstract class AbstractBaseDispatcher implements Dispatcher {
      * @param sendMessageInfo
      *            an object where the total size in messages and bytes will be returned back to the caller
      */
-    public void filterEntriesForConsumer(List<Entry> entries, EntryBatchSizes batchSizes,
+    public void filterEntriesForConsumer(Consumer consumer, List<Entry> entries, EntryBatchSizes batchSizes,
             SendMessageInfo sendMessageInfo, EntryBatchIndexesAcks indexesAcks,
-            ManagedCursor cursor, boolean isReplayRead) {
-        filterEntriesForConsumer(Optional.empty(), entries, batchSizes, sendMessageInfo, indexesAcks, cursor,
-                isReplayRead, null);
+            ManagedCursor cursor, boolean isReplayRead, boolean isMsgFilterEnabled) {
+        filterEntriesForConsumer(consumer, Optional.empty(), entries, batchSizes, sendMessageInfo, indexesAcks, cursor,
+                isReplayRead, isMsgFilterEnabled);
     }
 
-    public void filterEntriesForConsumer(Optional<EntryWrapper[]> entryWrapper, List<Entry> entries,
+    public void filterEntriesForConsumer(Consumer consumer, Optional<EntryWrapper[]> entryWrapper, List<Entry> entries,
             EntryBatchSizes batchSizes, SendMessageInfo sendMessageInfo, EntryBatchIndexesAcks indexesAcks,
             ManagedCursor cursor, boolean isReplayRead, boolean isMsgFilterEnabled) {
         int totalMessages = 0;
