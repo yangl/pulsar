@@ -42,7 +42,6 @@ import org.apache.pulsar.broker.cache.LocalZooKeeperCacheService;
 import org.apache.pulsar.broker.service.BrokerServiceException;
 import org.apache.pulsar.broker.web.PulsarWebResource;
 import org.apache.pulsar.broker.web.RestException;
-import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.common.api.proto.CommandGetTopicsOfNamespace;
 import org.apache.pulsar.common.naming.Constants;
 import org.apache.pulsar.common.naming.NamespaceBundle;
@@ -296,26 +295,6 @@ public abstract class AdminResource extends PulsarWebResource {
         }
     }
 
-    protected void validateTopicExistedAndCheckAllowAutoCreation(String tenant, String namespace,
-                                                                 String encodedTopic, boolean checkAllowAutoCreation) {
-        try {
-            PartitionedTopicMetadata partitionedTopicMetadata =
-                    pulsar().getBrokerService().fetchPartitionedTopicMetadataAsync(topicName).get();
-            if (partitionedTopicMetadata.partitions < 1) {
-                if (!pulsar().getNamespaceService().checkTopicExists(topicName).get()
-                        && checkAllowAutoCreation
-                        && !pulsar().getBrokerService().isAllowAutoTopicCreation(topicName)) {
-                    throw new RestException(Status.NOT_FOUND,
-                            new PulsarClientException.NotFoundException("Topic not exist"));
-                }
-            }
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("Failed to validate topic existed {}://{}/{}/{}",
-                    domain(), tenant, namespace, topicName, e);
-            throw new RestException(Status.INTERNAL_SERVER_ERROR, "Check topic partition meta failed.");
-        }
-    }
-
     @Deprecated
     protected void validateTopicName(String property, String cluster, String namespace, String encodedTopic) {
         String topic = Codec.decode(encodedTopic);
@@ -409,14 +388,17 @@ public abstract class AdminResource extends PulsarWebResource {
     }
 
     protected boolean checkBacklogQuota(BacklogQuota quota, RetentionPolicies retention) {
-        if (retention == null || retention.getRetentionSizeInMB() == 0
-                || retention.getRetentionSizeInMB() == -1) {
+        if (retention == null || retention.getRetentionSizeInMB() <= 0 || retention.getRetentionTimeInMinutes() <= 0) {
             return true;
         }
         if (quota == null) {
             quota = pulsar().getBrokerService().getBacklogQuotaManager().getDefaultQuota();
         }
         if (quota.getLimitSize() >= (retention.getRetentionSizeInMB() * 1024 * 1024)) {
+            return false;
+        }
+        // time based quota is in second
+        if (quota.getLimitTime() >= (retention.getRetentionTimeInMinutes() * 60)) {
             return false;
         }
         return true;

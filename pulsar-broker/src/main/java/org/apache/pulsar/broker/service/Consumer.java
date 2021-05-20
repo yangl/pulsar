@@ -130,7 +130,7 @@ public class Consumer {
                     int priorityLevel, String consumerName,
                     int maxUnackedMessages, TransportCnx cnx, String appId,
                     Map<String, String> metadata, boolean readCompacted, InitialPosition subscriptionInitialPosition,
-                    KeySharedMeta keySharedMeta, String msgFilterExpression) throws BrokerServiceException {
+                    KeySharedMeta keySharedMeta, String msgFilterExpression) {
 
         this.subscription = subscription;
         this.subType = subType;
