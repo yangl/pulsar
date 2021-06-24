@@ -65,7 +65,7 @@ public class Bookies extends AdminResource {
     public BookiesRackConfiguration getBookiesRackInfo() throws Exception {
         validateSuperUserAccess();
 
-        return localZkCache().getData(ZkBookieRackAffinityMapping.BOOKIE_INFO_ROOT_PATH,
+        return bookieZkCache().getData(ZkBookieRackAffinityMapping.BOOKIE_INFO_ROOT_PATH,
                 (key, content) ->
                         ObjectMapperFactory.getThreadLocal().readValue(content, BookiesRackConfiguration.class))
                 .orElse(new BookiesRackConfiguration());
@@ -100,7 +100,7 @@ public class Bookies extends AdminResource {
     public BookieInfo getBookieRackInfo(@PathParam("bookie") String bookieAddress) throws Exception {
         validateSuperUserAccess();
 
-        BookiesRackConfiguration racks = localZkCache()
+        BookiesRackConfiguration racks = bookieZkCache()
                 .getData(ZkBookieRackAffinityMapping.BOOKIE_INFO_ROOT_PATH, (key, content) -> ObjectMapperFactory
                         .getThreadLocal().readValue(content, BookiesRackConfiguration.class))
                 .orElse(new BookiesRackConfiguration());
@@ -117,7 +117,7 @@ public class Bookies extends AdminResource {
         validateSuperUserAccess();
 
 
-        Optional<Entry<BookiesRackConfiguration, Stat>> entry = localZkCache()
+        Optional<Entry<BookiesRackConfiguration, Stat>> entry = bookieZkCache()
             .getEntry(ZkBookieRackAffinityMapping.BOOKIE_INFO_ROOT_PATH, (key, content) -> ObjectMapperFactory
                 .getThreadLocal().readValue(content, BookiesRackConfiguration.class));
 
@@ -126,7 +126,7 @@ public class Bookies extends AdminResource {
             if (!racks.removeBookie(bookieAddress)) {
                 throw new RestException(Status.NOT_FOUND, "Bookie address not found: " + bookieAddress);
             } else {
-                localZk().setData(ZkBookieRackAffinityMapping.BOOKIE_INFO_ROOT_PATH,
+                bookieZk().setData(ZkBookieRackAffinityMapping.BOOKIE_INFO_ROOT_PATH,
                     jsonMapper().writeValueAsBytes(racks),
                     entry.get().getValue().getVersion());
                 log.info("Removed {} from rack mapping info", bookieAddress);
@@ -150,7 +150,7 @@ public class Bookies extends AdminResource {
             throw new RestException(Status.PRECONDITION_FAILED, "Bookie 'group' parameters is missing");
         }
 
-        Optional<Entry<BookiesRackConfiguration, Stat>> entry = localZkCache()
+        Optional<Entry<BookiesRackConfiguration, Stat>> entry = bookieZkCache()
                 .getEntry(ZkBookieRackAffinityMapping.BOOKIE_INFO_ROOT_PATH, (key, content) -> ObjectMapperFactory
                         .getThreadLocal().readValue(content, BookiesRackConfiguration.class));
 
@@ -159,15 +159,15 @@ public class Bookies extends AdminResource {
             BookiesRackConfiguration racks = entry.get().getKey();
             racks.updateBookie(group, bookieAddress, bookieInfo);
 
-            localZk().setData(ZkBookieRackAffinityMapping.BOOKIE_INFO_ROOT_PATH, jsonMapper().writeValueAsBytes(racks),
+            bookieZk().setData(ZkBookieRackAffinityMapping.BOOKIE_INFO_ROOT_PATH, jsonMapper().writeValueAsBytes(racks),
                     entry.get().getValue().getVersion());
-            localZkCache().invalidate(ZkBookieRackAffinityMapping.BOOKIE_INFO_ROOT_PATH);
+            bookieZkCache().invalidate(ZkBookieRackAffinityMapping.BOOKIE_INFO_ROOT_PATH);
             log.info("Updated rack mapping info for {}", bookieAddress);
         } else {
             // Creates the z-node with racks info
             BookiesRackConfiguration racks = new BookiesRackConfiguration();
             racks.updateBookie(group, bookieAddress, bookieInfo);
-            localZKCreate(ZkBookieRackAffinityMapping.BOOKIE_INFO_ROOT_PATH, jsonMapper().writeValueAsBytes(racks));
+            bookieZKCreate(ZkBookieRackAffinityMapping.BOOKIE_INFO_ROOT_PATH, jsonMapper().writeValueAsBytes(racks));
             log.info("Created rack mapping info and added {}", bookieAddress);
         }
     }

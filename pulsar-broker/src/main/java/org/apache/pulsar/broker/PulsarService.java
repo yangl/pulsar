@@ -160,6 +160,7 @@ import org.apache.pulsar.websocket.WebSocketService;
 import org.apache.pulsar.zookeeper.GlobalZooKeeperCache;
 import org.apache.pulsar.zookeeper.LocalZooKeeperCache;
 import org.apache.pulsar.zookeeper.LocalZooKeeperConnectionService;
+import org.apache.pulsar.zookeeper.ZkUtils;
 import org.apache.pulsar.zookeeper.ZooKeeperCache;
 import org.apache.pulsar.zookeeper.ZooKeeperClientFactory;
 import org.apache.pulsar.zookeeper.ZooKeeperSessionWatcher.ShutdownService;
@@ -194,6 +195,7 @@ public class PulsarService implements AutoCloseable {
     private ZooKeeperCache localZkCache;
     private GlobalZooKeeperCache globalZkCache;
     private LocalZooKeeperConnectionService localZooKeeperConnectionProvider;
+    private LocalZooKeeperConnectionService localZooKeeperConnectionProviderForBookie;
     private Compactor compactor;
     private ResourceUsageTransportManager resourceUsageTransportManager;
     private ResourceGroupService resourceGroupServiceManager;
@@ -421,6 +423,11 @@ public class PulsarService implements AutoCloseable {
                 localZooKeeperConnectionProvider = null;
             }
 
+            if (this.localZooKeeperConnectionProviderForBookie != null){
+                localZooKeeperConnectionProviderForBookie.close();
+                localZooKeeperConnectionProviderForBookie = null;
+            }
+
             configurationCacheService = null;
             localZkCacheService = null;
             if (localZkCache != null) {
@@ -632,10 +639,14 @@ public class PulsarService implements AutoCloseable {
             // Initialize and start service to access configuration repository.
             this.startZkCacheService();
 
+            localZooKeeperConnectionProviderForBookie = new LocalZooKeeperConnectionService(getZooKeeperClientFactory(),
+                    getBookieZkConnect(), config.getZooKeeperSessionTimeoutMillis());
+            localZooKeeperConnectionProviderForBookie.start(sessionExpiredHandler);
+
             this.bkClientFactory = newBookKeeperClientFactory();
 
             managedLedgerClientFactory = ManagedLedgerStorage.create(
-                config, localMetadataStore, getZkClient(), bkClientFactory, ioEventLoopGroup
+                config, localMetadataStore, getBookieZkClient(), bkClientFactory, ioEventLoopGroup
             );
 
             this.brokerService = new BrokerService(this, ioEventLoopGroup);
@@ -1034,6 +1045,11 @@ public class PulsarService implements AutoCloseable {
 
     public ZooKeeper getZkClient() {
         return this.localZooKeeperConnectionProvider.getLocalZooKeeper();
+    }
+
+    // bookkeeper's zookeeper
+    public ZooKeeper getBookieZkClient() {
+        return localZooKeeperConnectionProviderForBookie.getLocalZooKeeper();
     }
 
     /**
@@ -1515,6 +1531,15 @@ public class PulsarService implements AutoCloseable {
         PackagesStorage storage = storageProvider.getStorage(storageConfiguration);
         storage.initialize();
         packagesManagement.initialize(storage);
+    }
+
+    private String getBookieZkConnect() {
+        String bookkeeperMetadataServiceUri = config.getBookkeeperMetadataServiceUri();
+        if (StringUtils.isBlank(bookkeeperMetadataServiceUri)) {
+            bookkeeperMetadataServiceUri = PulsarService.bookieMetadataServiceUri(config);
+        }
+        String bookieZkConnect = ZkUtils.getBookieZkConnect(bookkeeperMetadataServiceUri);
+        return bookieZkConnect;
     }
 
     public Optional<Integer> getListenPortHTTP() {
